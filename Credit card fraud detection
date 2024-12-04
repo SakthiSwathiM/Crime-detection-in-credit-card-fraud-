@@ -1,0 +1,125 @@
+import java.awt.*;
+import java.awt.event.*;
+
+public class CreditCardFraudDetection extends Frame implements ActionListener {
+    private TextField cardNumberField, pinField;
+    private Label resultLabel;
+    private Button validateButton;
+
+    // Predefined valid card numbers and PINs for 10 users
+    private final String[] validCardNumbers = {
+        "12345678", "23456789", "34567890", "45678901", "56789012",
+        "67890123", "78901234", "89012345", "90123456", "01234567"
+    };
+
+    private final String[] validPins = {
+        "1234", "2345", "3456", "4567", "5678",
+        "6789", "7890", "8901", "9012", "0123"
+    };
+
+    private int incorrectAttempts = 0; // Count of incorrect attempts
+    private final int maxAttempts = 3; // Maximum number of allowed attempts
+
+    public CreditCardFraudDetection() {
+        // Set up the Frame
+        setTitle("Credit Card Fraud Detection");
+        setSize(400, 300);
+        setLayout(new FlowLayout());
+        setResizable(false);
+
+        // Card Number and PIN Input Fields
+        Label cardNumberLabel = new Label("Card Number (8 digits):");
+        cardNumberField = new TextField(20);
+        add(cardNumberLabel);
+        add(cardNumberField);
+
+        Label pinLabel = new Label("PIN (4 digits):");
+        pinField = new TextField(20);
+        pinField.setEchoChar('*'); // Mask the PIN input
+        add(pinLabel);
+        add(pinField);
+
+        // Validate Button
+        validateButton = new Button("Validate");
+        validateButton.addActionListener(this);
+        add(validateButton);
+
+        // Result Label
+        resultLabel = new Label("Enter card number and PIN, then click 'Validate'");
+        add(resultLabel);
+
+        // Close Window
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                System.exit(0);
+            }
+        });
+
+        setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == validateButton) {
+            String cardNumber = cardNumberField.getText();
+            String pin = pinField.getText();
+
+            // Validate card number and PIN length
+            if (cardNumber.length() != 8) {
+                resultLabel.setText("Card number must be 8 digits!");
+                return;
+            }
+            if (pin.length() != 4) {
+                resultLabel.setText("PIN must be 4 digits!");
+                return;
+            }
+
+            boolean valid = false;
+
+            // Iterate through all the valid card numbers and PINs
+            for (int i = 0; i < 10; i++) {
+                if (cardNumber.equals(validCardNumbers[i]) && pin.equals(validPins[i])) {
+                    valid = true;
+                    resultLabel.setText("Access Granted for User " + (i + 1) + "!");
+                    incorrectAttempts = 0; // Reset the incorrect attempts counter on success
+                    showAlert("Success", "Card and PIN validated successfully for User " + (i + 1), false);
+                    break;
+                }
+            }
+
+            if (!valid) {
+                incorrectAttempts++;
+                resultLabel.setText("Invalid details. Attempt " + incorrectAttempts + "/" + maxAttempts);
+
+                // If incorrect attempts reach the limit, show fraud alert
+                if (incorrectAttempts >= maxAttempts) {
+                    showAlert("Fraud Alert", "Multiple incorrect attempts detected! Fraud suspected.", true);
+                }
+            }
+        }
+    }
+
+    // Method to show alerts (success or fraud)
+    private void showAlert(String title, String message, boolean isFraudAlert) {
+        Dialog alertDialog = new Dialog(this, title, true);
+        alertDialog.setLayout(new FlowLayout());
+        alertDialog.setSize(300, 150);
+
+        Label alertLabel = new Label(message, Label.CENTER);
+        alertDialog.add(alertLabel);
+
+        Button okButton = new Button("OK");
+        okButton.addActionListener(e -> alertDialog.setVisible(false));
+        alertDialog.add(okButton);
+
+        if (isFraudAlert) {
+            Toolkit.getDefaultToolkit().beep(); // Beep sound for fraud alert
+        }
+
+        alertDialog.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        new CreditCardFraudDetection(); // Run the program
+    }
+}
